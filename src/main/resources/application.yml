@@ -5,10 +5,12 @@ spring:
   application:
     name: mini-thingsboard
 
+  # ${NAME:default} -> use environment variable NAME if set, otherwise the default.
+  # Defaults are for ./mvnw on your machine; docker-compose.yml sets the variables for containers.
   datasource:
-    url: jdbc:postgresql://localhost:5432/minitb
-    username: minitb
-    password: minitb
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/minitb}
+    username: ${SPRING_DATASOURCE_USERNAME:minitb}
+    password: ${SPRING_DATASOURCE_PASSWORD:minitb}
 
   jpa:
     hibernate:

@@ -1,0 +1,41 @@
+services:
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: minitb
+      POSTGRES_PASSWORD: minitb
+      POSTGRES_DB: minitb
+    ports:
+      - "5432:5432"          # so ./mvnw and psql on your Mac can still reach it
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U minitb -d minitb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    image: mini-thingsboard:latest
+    environment:
+      # "postgres" is the service name above; Compose's DNS resolves it to that container.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/minitb
+      SPRING_DATASOURCE_USERNAME: minitb
+      SPRING_DATASOURCE_PASSWORD: minitb
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy   # wait until pg_isready succeeds, not just until the container starts
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  pgdata:
+    name: minitb-pgdata   # reuse the volume created in Phase 1, so existing data is kept
