@@ -49,7 +49,7 @@ The project is built in phases. Each phase is developed on its own branch and me
 request, so the history shows how the architecture grew.
 
 - [x] **Phase 1, Foundation:** Spring Boot, PostgreSQL, domain model, device provisioning API
-- [ ] **Phase 2, Docker:** containerize the app; run it with Postgres using Docker Compose
+- [x] **Phase 2, Docker:** containerize the app; run it with Postgres using Docker Compose
 - [ ] **Phase 3, Caching:** Redis in front of device credentials and profiles
 - [ ] **Phase 4, Ingestion:** telemetry through Kafka, saved by a consumer
 - [ ] **Phase 5, Cluster:** 3 app replicas behind Nginx, sharing Postgres, Redis and Kafka
@@ -60,24 +60,19 @@ Java 21 · Spring Boot · PostgreSQL · Flyway · Redis · Kafka · ZooKeeper ·
 
 ## Getting started
 
-**Prerequisites:** JDK 21 and Docker.
-
-> These steps run the app directly on your machine. From Phase 2 onwards, everything starts with
-> `docker compose up`.
+**Prerequisites:** Docker.
 
 ```bash
-# 1. Start PostgreSQL
-docker run -d --name minitb-postgres \
-  -e POSTGRES_USER=minitb -e POSTGRES_PASSWORD=minitb -e POSTGRES_DB=minitb \
-  -p 5432:5432 -v minitb-pgdata:/var/lib/postgresql \
-  postgres:18
-
-# 2. Run the app (Flyway creates the schema on first startup)
-./mvnw spring-boot:run
-
-# 3. Check that it's up
+docker compose up --build -d    # build the app image and start the whole stack
+docker compose ps               # wait until every service shows "(healthy)"
 curl http://localhost:8080/actuator/health
 ```
+
+Stop it with `docker compose down`. Data is kept in a Docker volume; `docker compose down -v` also deletes it.
+
+**Running the app outside Docker** (for development, needs JDK 21): start only the infrastructure with
+`docker compose up -d postgres`, then run `./mvnw spring-boot:run`. The app's defaults point at `localhost`, and
+`docker-compose.yml` overrides them with environment variables when the app runs in a container.
 
 ## Design principles
 
