@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mini-thingsboard
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/minitb
+    username: minitb
+    password: minitb
+
+  jpa:
+    hibernate:
+      ddl-auto: validate      # check entities against the tables, never change them
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true                         # the default, written out so you can see it
+    locations: classpath:db/migration     # the default folder for migration files
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
