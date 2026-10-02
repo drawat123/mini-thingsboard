@@ -1,0 +1,7 @@
+# Keep the build context small: Docker sends everything not listed here to the builder.
+target/
+.git/
+.idea/
+.vscode/
+*.iml
+HELP.md
