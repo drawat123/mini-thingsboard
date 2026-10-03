@@ -30,4 +30,8 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
-.vscode/
+# Shared project config is committed; anything else in .vscode/ stays local.
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/settings.json

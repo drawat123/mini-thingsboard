@@ -1,0 +1,4 @@
+{
+  // Don't let the Java formatter re-wrap comments: it splits sentences and never joins them back.
+  "java.format.comments.enabled": false
+}

@@ -12,6 +12,16 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:minitb}
     password: ${SPRING_DATASOURCE_PASSWORD:minitb}
 
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 500ms           # per command; the default is 60s, so a dead Redis would hang every request
+      connect-timeout: 1s
+
+  cache:
+    type: redis
+
   jpa:
     hibernate:
       ddl-auto: validate      # check entities against the tables, never change them
@@ -30,3 +40,6 @@ management:
     web:
       exposure:
         include: health
+  health:
+    redis:
+      enabled: false   # Redis is only a cache: the app still works without it, so it must not mark us unhealthy

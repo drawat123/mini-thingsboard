@@ -1,11 +1,15 @@
 package com.minitb.device;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.minitb.common.CacheConfig;
 import com.minitb.common.NotFoundException;
 import com.minitb.deviceprofile.DeviceProfileService;
 
@@ -16,13 +20,16 @@ public class DeviceService {
 	private final DeviceCredentialsRepository deviceCredentialsRepository;
 	private final DeviceProfileService deviceProfileService;
 	private final AccessTokenGenerator accessTokenGenerator;
+	private final ApplicationEventPublisher eventPublisher;
 
 	public DeviceService(DeviceRepository deviceRepository, DeviceCredentialsRepository deviceCredentialsRepository,
-			DeviceProfileService deviceProfileService, AccessTokenGenerator accessTokenGenerator) {
+			DeviceProfileService deviceProfileService, AccessTokenGenerator accessTokenGenerator,
+			ApplicationEventPublisher eventPublisher) {
 		this.deviceRepository = deviceRepository;
 		this.deviceCredentialsRepository = deviceCredentialsRepository;
 		this.deviceProfileService = deviceProfileService;
 		this.accessTokenGenerator = accessTokenGenerator;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Transactional
@@ -54,9 +61,20 @@ public class DeviceService {
 	@Transactional
 	public DeviceCredentials regenerateCredentials(UUID tenantId, UUID deviceId) {
 		DeviceCredentials credentials = findCredentials(tenantId, deviceId);
+		String oldAccessToken = credentials.getAccessToken();
 		// No save() needed: Hibernate detects the change on this managed entity and UPDATEs at commit.
 		credentials.setAccessToken(accessTokenGenerator.generate());
+		// Handled after commit by DeviceCredentialsCacheEvictor, which removes the old token from the cache.
+		eventPublisher.publishEvent(new DeviceCredentialsChangedEvent(oldAccessToken));
 		return credentials;
+	}
+
+	// The hot path: every telemetry message is authenticated with this lookup (Phase 4).
+	// Unknown tokens return empty and are not cached.
+	@Cacheable(cacheNames = CacheConfig.DEVICE_CREDENTIALS, key = "#accessToken", unless = "#result == null")
+	@Transactional(readOnly = true)
+	public Optional<DeviceIdentity> findByAccessToken(String accessToken) {
+		return deviceCredentialsRepository.findIdentityByAccessToken(accessToken);
 	}
 
 	private DeviceCredentials findCredentials(UUID tenantId, UUID deviceId) {

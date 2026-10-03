@@ -9,8 +9,8 @@ Rebuild the core ideas of ThingsBoard at a small scale:
 
 - **Multi-tenancy:** each tenant owns device profiles and devices, and tenants can never see each other's data.
 - **Device provisioning:** every device gets an access token that it uses to send data.
-- **High-volume ingestion:** devices send telemetry, which goes through a message queue before it reaches the
-  database.
+- **High-volume ingestion:** devices send telemetry over HTTP or MQTT, which goes through a message queue
+  before it reaches the database.
 - **Horizontal scaling:** several identical copies of one application, sharing the same database, cache and queue.
 
 ## Target architecture
@@ -35,7 +35,7 @@ Rebuild the core ideas of ThingsBoard at a small scale:
 
 | Component | Role |
 |---|---|
-| **Spring Boot app** | REST API, business logic, Kafka producer and consumer |
+| **Spring Boot app** | REST API, device transports (HTTP, MQTT), business logic, Kafka producer and consumer |
 | **PostgreSQL** | Source of truth for tenants, profiles, devices, credentials and telemetry |
 | **Redis** | Cache for data read on every message (device credentials, profiles) |
 | **Kafka + ZooKeeper** | Absorbs bursts of telemetry so ingestion never waits on the database |
@@ -50,13 +50,17 @@ request, so the history shows how the architecture grew.
 
 - [x] **Phase 1, Foundation:** Spring Boot, PostgreSQL, domain model, device provisioning API
 - [x] **Phase 2, Docker:** containerize the app; run it with Postgres using Docker Compose
-- [ ] **Phase 3, Caching:** Redis in front of device credentials and profiles
+- [x] **Phase 3, Caching:** Redis in front of device credentials and profiles
 - [ ] **Phase 4, Ingestion:** telemetry through Kafka, saved by a consumer
 - [ ] **Phase 5, Cluster:** 3 app replicas behind Nginx, sharing Postgres, Redis and Kafka
+- [ ] **Phase 6, MQTT transport:** devices send telemetry over MQTT into the same Kafka pipeline; Nginx balances
+  long-lived TCP connections
+- [ ] **Phase 7, UI (optional):** Angular dashboard with login, device management and live telemetry over
+  WebSockets
 
 ## Tech stack
 
-Java 21 · Spring Boot · PostgreSQL · Flyway · Redis · Kafka · ZooKeeper · Nginx · Docker Compose · Maven
+Java 21 · Spring Boot · PostgreSQL · Flyway · Redis · Kafka · ZooKeeper · MQTT · Nginx · Docker Compose · Maven
 
 ## Getting started
 

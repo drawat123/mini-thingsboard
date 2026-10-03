@@ -7,11 +7,24 @@ services:
       POSTGRES_PASSWORD: minitb
       POSTGRES_DB: minitb
     ports:
-      - "5432:5432"          # so ./mvnw and psql on your Mac can still reach it
+      - "5432:5432" # so ./mvnw and psql on your Mac can still reach it
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U minitb -d minitb"]
+      test: [ "CMD-SHELL", "pg_isready -U minitb -d minitb" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8
+    # A pure cache: no snapshots or append-only file (nothing to persist), and when memory is full,
+    # evict the least recently used keys instead of rejecting writes.
+    command: [ "redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru" ]
+    ports:
+      - "6379:6379" # so ./mvnw and redis-cli on your Mac can reach it
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -24,13 +37,17 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/minitb
       SPRING_DATASOURCE_USERNAME: minitb
       SPRING_DATASOURCE_PASSWORD: minitb
+      SPRING_DATA_REDIS_HOST: redis
+      # Dev only: remote debugging. The JVM picks up JAVA_TOOL_OPTIONS automatically, so the image stays clean.
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:6005"
     ports:
       - "8080:8080"
+      - "6005:6005" # attach your IDE's remote debugger here
     depends_on:
       postgres:
-        condition: service_healthy   # wait until pg_isready succeeds, not just until the container starts
+        condition: service_healthy # wait until pg_isready succeeds, not just until the container starts
     healthcheck:
-      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      test: [ "CMD", "curl", "-fs", "http://localhost:8080/actuator/health" ]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -38,4 +55,4 @@ services:
 
 volumes:
   pgdata:
-    name: minitb-pgdata   # reuse the volume created in Phase 1, so existing data is kept
+    name: minitb-pgdata # reuse the volume created in Phase 1, so existing data is kept
