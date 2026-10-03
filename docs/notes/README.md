@@ -12,6 +12,7 @@ Revision notes, one file per phase. Each file has:
 |---|---|
 | 1 | [Spring Boot, PostgreSQL, Flyway, JPA, provisioning API](phase-1-foundation.md) |
 | 2 | [Docker and Docker Compose](phase-2-docker.md) |
+| 3 | [Caching with Redis](phase-3-redis.md) |
 
 **A good end-of-day routine (about 15 minutes):** answer the self-test questions for today's phase from memory,
 then check the answers. For any you got wrong, open the linked code and read it again.

@@ -50,7 +50,7 @@ request, so the history shows how the architecture grew.
 
 - [x] **Phase 1, Foundation:** Spring Boot, PostgreSQL, domain model, device provisioning API
 - [x] **Phase 2, Docker:** containerize the app; run it with Postgres using Docker Compose
-- [ ] **Phase 3, Caching:** Redis in front of device credentials and profiles
+- [x] **Phase 3, Caching:** Redis in front of device credentials and profiles
 - [ ] **Phase 4, Ingestion:** telemetry through Kafka, saved by a consumer
 - [ ] **Phase 5, Cluster:** 3 app replicas behind Nginx, sharing Postgres, Redis and Kafka
 - [ ] **Phase 6, MQTT transport:** devices send telemetry over MQTT into the same Kafka pipeline; Nginx balances
